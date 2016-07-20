@@ -288,6 +288,15 @@ class JSONAPI(object):
                             perm_idv[check_perm] = prop_value
             self.models[model.__jsonapi_type__] = model
 
+    def get_api_map(self, *args, **kwargs):
+        all_models = {}
+        for collection_name in self.models.keys():
+            collection_base_url = "{}/{}".format(self.prefix, collection_name)
+            all_models[collection_name] = collection_base_url
+        response = JSONAPIResponse()
+        response.data = {'data': all_models}
+        return response
+
     def _api_type_for_model(self, model):
         return dasherize(tableize(model.__name__))
 

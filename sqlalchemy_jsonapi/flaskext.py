@@ -37,6 +37,7 @@ class JSONAPIEncoder(json.JSONEncoder):
 
 #: The views to generate
 views = [
+    (Method.GET, Endpoint.API_MAP),
     (Method.GET, Endpoint.COLLECTION), (Method.GET, Endpoint.RESOURCE),
     (Method.GET, Endpoint.RELATED), (Method.GET, Endpoint.RELATIONSHIP),
     (Method.POST, Endpoint.COLLECTION), (Method.POST, Endpoint.RELATIONSHIP),
@@ -215,7 +216,8 @@ class FlaskJSONAPI(object):
             results = self.on_request.send(self, **event_kwargs)
             data = override(data, results)
 
-            args = [self.sqla.session, data, kwargs['api_type']]
+            args = [self.sqla.session, data, kwargs.get('api_type')]
+
             if 'obj_id' in kwargs.keys():
                 args.append(kwargs['obj_id'])
             if 'relationship' in kwargs.keys():
@@ -224,8 +226,8 @@ class FlaskJSONAPI(object):
             try:
                 attr = '{}_{}'.format(method.name, endpoint.name).lower()
                 handler = getattr(self.serializer, attr)
-                handler_chain = list(self._handler_chains.get((kwargs[
-                    'api_type'], method, endpoint), []))
+                handler_chain = list(self._handler_chains.get(
+                    (kwargs.get('api_type'), method, endpoint), []))
                 handler_chain.append(handler)
                 chained_handler = self._call_next(handler_chain)
                 response = chained_handler(*args)
@@ -245,7 +247,7 @@ class FlaskJSONAPI(object):
             rendered_response.content_type = 'application/vnd.api+json'
             results = self.on_response.send(self,
                                             response=rendered_response,
-                                            **event_kwargs)
+                                             **event_kwargs)
             return override(rendered_response, results)
 
         return new_view

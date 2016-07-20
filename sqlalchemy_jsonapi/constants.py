@@ -23,6 +23,7 @@ class Method(Enum):
 class Endpoint(Enum):
     """ Four paths specified in JSON API """
 
+    API_MAP = '/'
     COLLECTION = '/<api_type>'
     RESOURCE = '/<api_type>/<obj_id>'
     RELATED = '/<api_type>/<obj_id>/<relationship>'
