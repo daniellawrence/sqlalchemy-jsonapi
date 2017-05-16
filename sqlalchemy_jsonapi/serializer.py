@@ -525,8 +525,9 @@ class JSONAPI(object):
             number = int(args['number'])
             size = int(args['size'])
             start = number * size
+            end = start + size - 1
 
-            return start, start + size - 1
+            return start, size, end
 
         if {'limit', 'offset'} == set(args.keys()):
             if not args['limit'].isdecimal() or not args['offset'].isdecimal():
@@ -534,10 +535,11 @@ class JSONAPI(object):
 
             limit = int(args['limit'])
             offset = int(args['offset'])
+            end = offset + limit - 1
 
-            return offset, offset + limit - 1
+            return offset, limit, end
 
-        return 0, None
+        return 0, None, None
 
     def delete_relationship(self, session, data, api_type, obj_id, rel_key):
         """
@@ -661,7 +663,11 @@ class JSONAPI(object):
             collection = collection.order_by(*order_by)
 
         pos = -1
-        start, end = self._parse_page(query)
+        start, limit, end = self._parse_page(query)
+
+        collection = collection.offset(start)
+        if limit:
+            collection = collection.limit(limit)
 
         response = JSONAPIResponse()
         response.data['data'] = []
